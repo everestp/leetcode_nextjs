@@ -1,9 +1,11 @@
 import Image from "next/image";
-
-export default function Home() {
+import { UserButton } from "@clerk/nextjs";
+import { onBoardUser } from "@/module/auth/actions";
+export default  async function Home() {
+await onBoardUser()
   return (
   <div>
-    
+    <UserButton/>
   </div>
   );
 }

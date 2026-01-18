@@ -92,9 +92,134 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
+exports.Prisma.UserScalarFieldEnum = {
+  id: 'id',
+  clerkId: 'clerkId',
+  username: 'username',
+  email: 'email',
+  role: 'role',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  imageUrl: 'imageUrl',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ProblemScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  difficulty: 'difficulty',
+  tags: 'tags',
+  userId: 'userId',
+  examples: 'examples',
+  constraints: 'constraints',
+  hints: 'hints',
+  editorial: 'editorial',
+  testCases: 'testCases',
+  codeSnippets: 'codeSnippets',
+  referenceSolutions: 'referenceSolutions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SubmissionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  problemId: 'problemId',
+  sourceCode: 'sourceCode',
+  language: 'language',
+  stdin: 'stdin',
+  stdout: 'stdout',
+  stderr: 'stderr',
+  compileOutput: 'compileOutput',
+  status: 'status',
+  memory: 'memory',
+  time: 'time',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.TestCaseResultScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  testCase: 'testCase',
+  passed: 'passed',
+  stdout: 'stdout',
+  expected: 'expected',
+  stderr: 'stderr',
+  compileOutput: 'compileOutput',
+  status: 'status',
+  memory: 'memory',
+  time: 'time',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ProblemSolvedScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  problemId: 'problemId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PlaylistScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ProblemInPlaylistScalarFieldEnum = {
+  id: 'id',
+  playlistId: 'playlistId',
+  problemId: 'problemId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.SortOrder = {
+  asc: 'asc',
+  desc: 'desc'
+};
+
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+};
+
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+exports.UserRole = exports.$Enums.UserRole = {
+  ADMIN: 'ADMIN',
+  USER: 'USER'
+};
+
+exports.Difficulty = exports.$Enums.Difficulty = {
+  EASY: 'EASY',
+  MEDIUM: 'MEDIUM',
+  HARD: 'HARD'
+};
 
 exports.Prisma.ModelName = {
-
+  User: 'User',
+  Problem: 'Problem',
+  Submission: 'Submission',
+  TestCaseResult: 'TestCaseResult',
+  ProblemSolved: 'ProblemSolved',
+  Playlist: 'Playlist',
+  ProblemInPlaylist: 'ProblemInPlaylist'
 };
 /**
  * Create the Client
@@ -104,10 +229,10 @@ const config = {
   "clientVersion": "7.2.0",
   "engineVersion": "0c8ef2ce45c83248ab3df073180d5eda9e8be7a3",
   "activeProvider": "postgresql",
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../app/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n"
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../app/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nenum UserRole {\n  ADMIN\n  USER\n}\n\nenum Difficulty {\n  EASY\n  MEDIUM\n  HARD\n}\n\nmodel User {\n  id       String   @id @default(uuid())\n  clerkId  String   @unique\n  username String?  @unique\n  email    String   @unique\n  role     UserRole @default(USER)\n\n  firstName String?\n  lastName  String?\n  imageUrl  String?\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  problems       Problem[]\n  submissions    Submission[]\n  solvedProblems ProblemSolved[]\n  playlists      Playlist[]\n\n  @@index([role])\n}\n\nmodel Problem {\n  id          String     @id @default(uuid())\n  title       String\n  description String\n  difficulty  Difficulty // EASY, MEDIUM, HARD\n  tags        String[]\n  userId      String // Creator of the problem\n  examples    Json // Language-specific examples\n  constraints String\n  hints       String?\n  editorial   String?\n\n  testCases          Json\n  codeSnippets       Json\n  referenceSolutions Json\n\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)\n  submissions       Submission[]\n  solvedBy          ProblemSolved[]\n  problemsPlaylists ProblemInPlaylist[]\n\n  @@index([difficulty])\n}\n\nmodel Submission {\n  id            String   @id @default(uuid())\n  userId        String\n  problemId     String\n  sourceCode    Json\n  language      String\n  stdin         String?\n  stdout        String?\n  stderr        String?\n  compileOutput String?\n  status        String\n  memory        String?\n  time          String?\n  createdAt     DateTime @default(now())\n\n  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)\n  problem   Problem          @relation(fields: [problemId], references: [id], onDelete: Cascade)\n  testCases TestCaseResult[]\n\n  @@index([status])\n}\n\nmodel TestCaseResult {\n  id            String  @id @default(uuid())\n  submissionId  String\n  testCase      Int\n  passed        Boolean\n  stdout        String?\n  expected      String\n  stderr        String?\n  compileOutput String?\n  status        String\n  memory        String?\n  time          String?\n\n  createdAt DateTime @default(now())\n\n  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)\n\n  @@index([submissionId])\n}\n\nmodel ProblemSolved {\n  id        String   @id @default(uuid())\n  userId    String\n  problemId String\n  createdAt DateTime @default(now())\n\n  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)\n  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)\n\n  @@unique([userId, problemId])\n}\n\nmodel Playlist {\n  id          String   @id @default(uuid())\n  name        String\n  description String?\n  userId      String\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n\n  problems ProblemInPlaylist[]\n\n  user User @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@unique([name, userId])\n}\n\nmodel ProblemInPlaylist {\n  id         String   @id @default(uuid())\n  playlistId String\n  problemId  String\n  createdAt  DateTime @default(now())\n\n  playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)\n  problem  Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)\n\n  @@unique([playlistId, problemId])\n}\n"
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clerkId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"username\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"enum\",\"type\":\"UserRole\"},{\"name\":\"firstName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"lastName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"imageUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"problems\",\"kind\":\"object\",\"type\":\"Problem\",\"relationName\":\"ProblemToUser\"},{\"name\":\"submissions\",\"kind\":\"object\",\"type\":\"Submission\",\"relationName\":\"SubmissionToUser\"},{\"name\":\"solvedProblems\",\"kind\":\"object\",\"type\":\"ProblemSolved\",\"relationName\":\"ProblemSolvedToUser\"},{\"name\":\"playlists\",\"kind\":\"object\",\"type\":\"Playlist\",\"relationName\":\"PlaylistToUser\"}],\"dbName\":null},\"Problem\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"difficulty\",\"kind\":\"enum\",\"type\":\"Difficulty\"},{\"name\":\"tags\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"examples\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"constraints\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"hints\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"editorial\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"testCases\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"codeSnippets\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"referenceSolutions\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"ProblemToUser\"},{\"name\":\"submissions\",\"kind\":\"object\",\"type\":\"Submission\",\"relationName\":\"ProblemToSubmission\"},{\"name\":\"solvedBy\",\"kind\":\"object\",\"type\":\"ProblemSolved\",\"relationName\":\"ProblemToProblemSolved\"},{\"name\":\"problemsPlaylists\",\"kind\":\"object\",\"type\":\"ProblemInPlaylist\",\"relationName\":\"ProblemToProblemInPlaylist\"}],\"dbName\":null},\"Submission\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"problemId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sourceCode\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"language\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"stdin\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"stdout\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"stderr\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"compileOutput\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"memory\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"time\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"SubmissionToUser\"},{\"name\":\"problem\",\"kind\":\"object\",\"type\":\"Problem\",\"relationName\":\"ProblemToSubmission\"},{\"name\":\"testCases\",\"kind\":\"object\",\"type\":\"TestCaseResult\",\"relationName\":\"SubmissionToTestCaseResult\"}],\"dbName\":null},\"TestCaseResult\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"submissionId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"testCase\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"passed\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"stdout\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"expected\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"stderr\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"compileOutput\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"memory\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"time\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"submission\",\"kind\":\"object\",\"type\":\"Submission\",\"relationName\":\"SubmissionToTestCaseResult\"}],\"dbName\":null},\"ProblemSolved\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"problemId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"ProblemSolvedToUser\"},{\"name\":\"problem\",\"kind\":\"object\",\"type\":\"Problem\",\"relationName\":\"ProblemToProblemSolved\"}],\"dbName\":null},\"Playlist\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"problems\",\"kind\":\"object\",\"type\":\"ProblemInPlaylist\",\"relationName\":\"PlaylistToProblemInPlaylist\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"PlaylistToUser\"}],\"dbName\":null},\"ProblemInPlaylist\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"playlistId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"problemId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"playlist\",\"kind\":\"object\",\"type\":\"Playlist\",\"relationName\":\"PlaylistToProblemInPlaylist\"},{\"name\":\"problem\",\"kind\":\"object\",\"type\":\"Problem\",\"relationName\":\"ProblemToProblemInPlaylist\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.compilerWasm = {
   getRuntime: async () => require('./query_compiler_bg.js'),
